@@ -133,12 +133,18 @@ void ChessGame::drawLegalMoves(Piece p){
     
     Move m;
     m.start=p.getPosition();
+    board.selectSquare(p.getPosition());
     for(int i=0; i<64; i++){
         m.end=i;
         if(i%8==0){
             std::cerr<<"\n";
         }
-        std::cerr<<isLegalMove(m)<<" ";
+        bool t=isLegalMove(m);
+        std::cerr<<t<<" ";
+        if(t){
+            board.selectSquare(i);
+        }
+
     }
 
 }
@@ -146,6 +152,7 @@ void ChessGame::drawLegalMoves(Piece p){
 void ChessGame::draw(sf::RenderTarget& target, sf::RenderStates states) const{
     target.clear(sf::Color::Black);
     target.draw(board);
+
     for(int i=0;i<16;i++){
         target.draw(whitePieces[i]);
         target.draw(blackPieces[i]);
@@ -231,8 +238,6 @@ void ChessGame::legalKnightMoves(Piece &p){
         m.takes=NULL;
         if(obstacle!=NULL && obstacle->getPlayer()!=p.getPlayer()){
             m.takes=obstacle;
-            legalMoves.push_front(m);
-            continue;
         }
         legalMoves.push_front(m);
     }

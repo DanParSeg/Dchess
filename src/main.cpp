@@ -25,9 +25,10 @@ int main()
                         if(board.getSelectedPiece()==NULL){
                             if(board.selectPiece(buttonPos))
                                 board.drawLegalMoves(*board.getSelectedPiece());
-                            window.display();
+                            //window.display();
                         }
                         else{
+                            board.resetColorBoard();
                             board.moveSelected(buttonPos);
                         }
 
@@ -38,6 +39,7 @@ int main()
         window.clear();
         window.draw(board);
         window.display();
+        
     }
 
     return 0;

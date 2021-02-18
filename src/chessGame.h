@@ -32,6 +32,7 @@ public:
     void moveSelected(int pos);
     void makeMove(Move m);
     void drawLegalMoves(Piece p);
+    void resetColorBoard(){board.resetColor();};
     bool isLegalMove(Move m);
     Piece * isMoveTakingPiece(Move m);
 
