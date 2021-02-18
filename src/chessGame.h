@@ -13,10 +13,9 @@
 #include "board.h"
 #include "piece.h"
 
-const int directionOffsets[]={-8,8,-1,1,7,-7,9,-9};
-const int knightOffsets[]={6,-6,10,-10,15,-15,17,-17};
+const int directionOffsets[]={-8,8,-1,1,7,-7,9,-9};//up down left right downleft upright downright upleft
+const int knightOffsets[]={-17,-15,15,17,-10,6,-6,10};//up(left right) down(left right) left(up down) right(up down)
 const int castleMoves[]={2,6,58,62,    3,5,59,61,     0,7,56,63};//4 movimientos de rey, 4 de torre, 4 posicion original de torre
-//const int pawnOffsets[]={16,8,9,7};
 struct Move{
     int start;
     int end;

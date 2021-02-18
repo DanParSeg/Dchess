@@ -204,11 +204,14 @@ void ChessGame::legalKnightMoves(Piece &p){
     //caballo
     int start=p.getPosition();
     for(int dirIndex=0; dirIndex<8; dirIndex++){
-        int target=start+knightOffsets[dirIndex];
-        if(target<0||target>=64){
+        if(numSquaresToEdge[start][dirIndex/2]<2){
             continue;
         }
-        Piece * obstacle = pieceOnSquare(target);
+        if(numSquaresToEdge[start][2+dirIndex%2-2*(dirIndex/4)]<1){
+            continue;
+        }
+        int target=start+knightOffsets[dirIndex];
+        Piece * obstacle= pieceOnSquare(target);
         if(obstacle!=NULL && obstacle->getPlayer()==p.getPlayer()){
             continue;
         }
