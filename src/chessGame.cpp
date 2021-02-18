@@ -204,9 +204,18 @@ void ChessGame::legalKnightMoves(Piece &p){
     //caballo
     int start=p.getPosition();
     for(int dirIndex=0; dirIndex<8; dirIndex++){
+        /*
+        primero compruebo si el caballo está a menos de 2 casillas del borde
+        Si lo está no puede hacer el movimiento primario, es decir, el movimiento de 2 casillas de la L
+        dirIndex/2 devuelve la dirección del movimiento primario.
+        */
         if(numSquaresToEdge[start][dirIndex/2]<2){
             continue;
         }
+        /*
+        pero si el caballo está pegado al borde no puede hacer el movimiento secundario, el movimiento de 1 casilla de la L
+        [2+dirIndex%2-2*(dirIndex/4)] devuelve la direccion del movimiento secundario
+        */
         if(numSquaresToEdge[start][2+dirIndex%2-2*(dirIndex/4)]<1){
             continue;
         }
