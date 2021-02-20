@@ -111,7 +111,7 @@ void ChessGame::makeMove(Move m){
     //castle
     if(m.piece->getType()=='K'){
         for(int i=0; i<4; i++){
-            if(m.end==castleMoves[i]){
+            if(m.end==castleMoves[i]&&(m.start==60||m.start==4)){
                 pieceOnSquare(castleMoves[i+8])->setPosition(castleMoves[i+4]);
             }
         }
@@ -120,7 +120,7 @@ void ChessGame::makeMove(Move m){
     m.takes=isMoveTakingPiece(m);
     std::cerr<<"takes:"<<m.takes<<"\n";
     if(m.takes!=NULL){
-        std::cerr<<"aqui?:\n";
+        //std::cerr<<"aqui?:\n";
         //std::cerr<<"takes\n";
         m.takes->setPosition(-1);
     }
@@ -362,19 +362,9 @@ void ChessGame::legalPawnTakes(Piece &p, int dirIndex){
     //en passant
     dangerPiece=pieceOnSquare(m.start+passantOffset);
     m.takes=dangerPiece;
-    //std::cerr<<"analizando peon passant color: "<<p.getPlayer()<<"\n";
     if(dangerPiece!=NULL&&dangerPiece->getPlayer()!=p.getPlayer()){
-        //std::cerr<<"    hay una pieza enemiga al lado del peon\n";
-        //hay una pieza enemiga al lado del peon
         if(dangerPiece->getType()=='P'&&playedMoves.front().piece==dangerPiece){
-            //std::cerr<<"        esa pieza es un peon y ha movido en el ultimo turno\n";
-            //std::cerr<<"        ultimo turno: color="<<playedMoves.front().piece->getPlayer()<<"\n";
-            //std::cerr<<"        ultimo turno: desde="<<playedMoves.front().start<<"\n";
-            //esa pieza es un peon y ha movido en el ultimo turno
             if(std::abs(playedMoves.back().start-playedMoves.back().end)==16){
-                //std::cerr<<"            ese peon ha movido 2 cuadrados en 1 turno\n";
-                //std::cerr<<"                "<<m.start<<m.end;
-                //ese peon ha movido 2 cuadrados en 1 turno
                 legalMoves.push_front(m);
             }
         }
