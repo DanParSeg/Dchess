@@ -56,7 +56,7 @@ private:
     void legalKnightMoves(Piece &p);
     void legalKingMoves(Piece &p);
     bool isLegalCastle(Move m);
-    void legalPawnTakes(Piece &p, int moveOffset, int passantOffset);
+    void legalPawnTakes(Piece &p, int dirIndex);
     void legalPawnMoves(Piece &p);
     void calculatelegalMovesPiece(Piece &p);
     void updateTakes();

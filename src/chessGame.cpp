@@ -305,6 +305,9 @@ void ChessGame::legalKingMoves(Piece &p){
     m.start=start;
     m.piece=&p;
     for(int dirIndex=0; dirIndex<8; dirIndex++){
+        if(numSquaresToEdge[start][dirIndex]<1){
+            continue;
+        }
         int target=start+directionOffsets[dirIndex];
         if(target<0||target>=64){
             continue;
@@ -331,12 +334,25 @@ void ChessGame::legalKingMoves(Piece &p){
     }
 }
 
-void ChessGame::legalPawnTakes(Piece &p, int moveOffset, int passantOffset){
+void ChessGame::legalPawnTakes(Piece &p, int dirIndex){
     Move m;
     m.start=p.getPosition();
     m.piece=&p;
-    if(p.getPlayer())moveOffset=-moveOffset;//if white: move towards black
+    
+    int moveOffset=directionOffsets[dirIndex];
+    int passantOffset=moveOffset+8;
     m.end=m.start+moveOffset;
+
+    if(p.getPlayer()&&moveOffset>0){//if white and wants to take backwards
+        return;
+    }
+    if(!p.getPlayer()&&moveOffset<0){//if black and wants to take backwards
+        return;
+    }
+    if(numSquaresToEdge[m.start][dirIndex]<1){//if too close to the edge
+        return;
+    }
+
     Piece * dangerPiece=pieceOnSquare(m.end);
     m.takes=dangerPiece;
     //normal take
@@ -390,8 +406,10 @@ void ChessGame::legalPawnMoves(Piece &p){
             legalMoves.push_front(m);
         }
     }
-    legalPawnTakes(p,7,1);
-    legalPawnTakes(p,9,-1);
+    legalPawnTakes(p,4);
+    legalPawnTakes(p,5);
+    legalPawnTakes(p,6);
+    legalPawnTakes(p,7);
 
 }
 
@@ -417,11 +435,15 @@ void ChessGame::recalculateLegalMoves(){
     //TODO: position -1 is weird
     legalMoves.clear();
     for(int i=0; i<16; i++){
+        calculatelegalMovesPiece(whitePieces[i]);
+        calculatelegalMovesPiece(blackPieces[i]);
+        /*
         if(playerTurn){
             calculatelegalMovesPiece(whitePieces[i]);
         }
         else{
             calculatelegalMovesPiece(blackPieces[i]);
         }
+        */
     }
 }
