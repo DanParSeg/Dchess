@@ -19,19 +19,13 @@ public:
 
     Piece * getTaken() const{return m_taken;}
     void setTaken(Piece * p){m_taken=p;}
+    bool isCapture() const{return m_taken!=NULL;}
 
+    void setCastle() {m_castle=true;}
     bool isCastle() const {return m_castle;}
 
-    //void setPlayer(bool player){m_player=player;}
-
-    bool isCapture() const{return m_taken!=NULL;}
-/*
-    void setFlags(bool castle=false, bool passant=false, bool promote=false){
-        m_castle=castle;
-        m_passant=passant;
-        m_promote=promote;
-    }
-*/
+    void setPassant() {m_passant=true;}
+    bool isPassant() const {return m_passant;}
 
 private:
     uint8_t m_start;

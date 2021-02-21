@@ -110,37 +110,35 @@ void ChessGame::makeMove(ChessMove m){
 
 
     //si es legal muevo la pieza y añado a la lista de movimientos
-    if(!isLegalMove(m)) return;
-    m.setTaken(isMoveTakingPiece(m));//si el movimiento captura una pieza, añadelo al movimiento
+    ChessMove * temp = matchLegalMove(m);
+    if(temp==NULL) return;
+    m=*temp;
     playedMoves.push_front(m);
     m.getPiece()->setPosition(m.getEnd());
     //mueve la ficha capturada
+
+    //TODO: castle
+    if(m.isCastle()){
+        std::cerr<<"hola?";
+        for(int i=0; i<4; i++){
+            if(m.getEnd()==castleMoves[i]&&(m.getStart()==60||m.getStart()==4)){
+                pieceOnSquare(castleMoves[i+8])->setPosition(castleMoves[i+4]);
+            }
+        }
+    }
     
     if(m.isCapture()){
         std::cerr<<"\033[1;31m"<<"takes"<<"\033[0m\n";
         debugPrintMove(m);
         m.getTaken()->setPosition(-1);
     }
+
     
     //cambia de turno y recalcula movimientos legales
     playerTurn=!playerTurn;
     recalculateLegalMoves();
-    //m.piece->setPosition(m.end);
-    //castle
-    /*
-    if(m.isCastle()){
-        pieceOnSquare(castleMoves[i+8])->setPosition(castleMoves[i+4]);
-    }
-    */
-    /*
-    if(m.getPiece()->getType()=='K'){
-        for(int i=0; i<4; i++){
-            if(m.end==castleMoves[i]&&(m.start==60||m.start==4)){
-                pieceOnSquare(castleMoves[i+8])->setPosition(castleMoves[i+4]);
-            }
-        }
-    }
-    */
+
+
     //updateTakes();
 }
 
@@ -153,7 +151,7 @@ void ChessGame::drawLegalMoves(Piece p){
         if(i%8==0){
             std::cerr<<"\n";
         }
-        bool t=isLegalMove(m);
+        bool t=matchLegalMove(m)!=NULL;
         std::cerr<<t<<" ";
         if(t){
             board.selectSquare(i);
@@ -184,19 +182,11 @@ void ChessGame::draw(sf::RenderTarget& target, sf::RenderStates states) const{
     }
 }
 
-bool ChessGame::isLegalMove(ChessMove m){
-    for (auto const& i : legalMoves) {
+ChessMove * ChessGame::matchLegalMove(ChessMove m){
+    //converts move without flags to legal move
+    for (auto & i : legalMoves) {
         if(i.getEnd()==m.getEnd()&&i.getStart()==m.getStart()){
-            return true;
-        }
-    }
-    return false;
-}
-
-Piece * ChessGame::isMoveTakingPiece(ChessMove m){
-    for (auto const& i : legalMoves) {
-        if(i.getEnd()==m.getEnd()&&i.getStart()==m.getStart()&&i.getPiece()==m.getPiece()){
-            return i.getTaken();
+            return &i;
         }
     }
     return NULL;
@@ -332,6 +322,7 @@ void ChessGame::legalKingMoves(Piece &p){
     }
     for(int i=0; i<4; i++){//castle
         m.setEnd(castleMoves[i]);
+        m.setCastle();
         if(isLegalCastle(m)){
             legalMoves.push_front(m);
         }

@@ -40,8 +40,7 @@ public:
     void undoMove();
     void drawLegalMoves(Piece p);
     void resetColorBoard(){board.resetColor();};
-    bool isLegalMove(ChessMove m);
-    Piece * isMoveTakingPiece(ChessMove m);
+    ChessMove * matchLegalMove(ChessMove m);
 
     void restart();
     
