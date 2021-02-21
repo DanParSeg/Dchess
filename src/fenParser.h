@@ -2,6 +2,7 @@
 #define _FEN_PARSER_H
 
 #include "piece.h"
+#include <iostream>
 
 namespace fenParser{
     //input: null terminated string, Piece array

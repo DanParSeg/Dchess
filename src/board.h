@@ -2,7 +2,7 @@
 #define _BOARD_H
 
 #include <SFML/Graphics.hpp>
-#include <iostream>
+//#include <iostream>
 #include <array>
 #include "constants.h"
 

@@ -25,7 +25,6 @@ int main()
                         if(board.getSelectedPiece()==NULL){
                             if(board.selectPiece(buttonPos))
                                 board.drawLegalMoves(*board.getSelectedPiece());
-                            //window.display();
                         }
                         else{
                             board.resetColorBoard();

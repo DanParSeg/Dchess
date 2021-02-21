@@ -1,11 +1,13 @@
 #include "chessGame.h"
-#include "stdio.h"
+//#include "stdio.h"
 
 ChessGame::ChessGame(sf::Color bordCol1 = sf::Color::White, sf::Color bordCol2 = sf::Color::Black)
 : board(bordCol1,bordCol2){
+    
     precomputeNumSquaresToEdge();
     restart();
     recalculateLegalMoves();
+    
 }
 
 void ChessGame::precomputeNumSquaresToEdge(){
@@ -24,9 +26,6 @@ void ChessGame::precomputeNumSquaresToEdge(){
         }
     }
 }
-
-
-
 
 void ChessGame::restart(){
     playerTurn = true;
@@ -70,23 +69,6 @@ Piece * ChessGame::pieceOnSquare(int square){
     }
     return NULL;
 }
-/*
-void ChessGame::updateTakes(){
-    for(int i=0; i<16; i++){
-        for (int j = 0; j < 16; j++){
-            if(whitePieces[i].getPosition()==blackPieces[j].getPosition()){
-                if(playerTurn){
-                    blackPieces[j].setPosition(-1);
-                }
-                else{
-                    whitePieces[j].setPosition(-1);
-                }
-            }
-        }
-    }
-}
-*/
-
 
 bool ChessGame::selectPiece(int pos){
     selectedPiece=pieceOnSquare(pos);
@@ -96,46 +78,78 @@ bool ChessGame::selectPiece(int pos){
 void ChessGame::moveSelected(int pos){
     if(selectedPiece==NULL) return;
 
-    Move m;
-    m.start=selectedPiece->getPosition();
-    m.end=pos;
-    m.piece=selectedPiece;
+    ChessMove m;
+    m.setStart(selectedPiece->getPosition());
+    m.setEnd(pos);
+    m.setPiece(selectedPiece);
     makeMove(m);
     selectedPiece=NULL;
 }
 
-void ChessGame::makeMove(Move m){
+/*
+void ChessGame::undoMove(){
+    ChessMove m=playedMoves.front();
+    playedMoves.pop_front();
+    m.piece->setPosition(m.start);
+    if(m.takes!=NULL){
+        m.takes->setPosition(m.end);
+    }
+    playerTurn=!playerTurn;
+}
+*/
+
+void ChessGame::makeMove(ChessMove m){
+    //debug
+    std::cerr<<"legal moves:\n";
+    for (auto const& i : legalMoves) {
+        debugPrintMove(i);
+    }
+    std::cerr<<"\nmove:\n";
+    debugPrintMove(m);
+
+
+
+    //si es legal muevo la pieza y añado a la lista de movimientos
     if(!isLegalMove(m)) return;
+    m.setTaken(isMoveTakingPiece(m));//si el movimiento captura una pieza, añadelo al movimiento
     playedMoves.push_front(m);
-    m.piece->setPosition(m.end);
+    m.getPiece()->setPosition(m.getEnd());
+    //mueve la ficha capturada
+    
+    if(m.isCapture()){
+        std::cerr<<"\033[1;31m"<<"takes"<<"\033[0m\n";
+        debugPrintMove(m);
+        m.getTaken()->setPosition(-1);
+    }
+    
+    //cambia de turno y recalcula movimientos legales
+    playerTurn=!playerTurn;
+    recalculateLegalMoves();
+    //m.piece->setPosition(m.end);
     //castle
-    if(m.piece->getType()=='K'){
+    /*
+    if(m.isCastle()){
+        pieceOnSquare(castleMoves[i+8])->setPosition(castleMoves[i+4]);
+    }
+    */
+    /*
+    if(m.getPiece()->getType()=='K'){
         for(int i=0; i<4; i++){
             if(m.end==castleMoves[i]&&(m.start==60||m.start==4)){
                 pieceOnSquare(castleMoves[i+8])->setPosition(castleMoves[i+4]);
             }
         }
     }
+    */
     //updateTakes();
-    m.takes=isMoveTakingPiece(m);
-    std::cerr<<"takes:"<<m.takes<<"\n";
-    if(m.takes!=NULL){
-        //std::cerr<<"aqui?:\n";
-        //std::cerr<<"takes\n";
-        m.takes->setPosition(-1);
-    }
-    //std::cerr<<"aqui?:\n";
-    playerTurn=!playerTurn;
-    recalculateLegalMoves();
 }
 
 void ChessGame::drawLegalMoves(Piece p){
-    
-    Move m;
-    m.start=p.getPosition();
+    ChessMove m;
+    m.setStart(p.getPosition());
     board.selectSquare(p.getPosition());
     for(int i=0; i<64; i++){
-        m.end=i;
+        m.setEnd(i);
         if(i%8==0){
             std::cerr<<"\n";
         }
@@ -144,9 +158,20 @@ void ChessGame::drawLegalMoves(Piece p){
         if(t){
             board.selectSquare(i);
         }
-
     }
+    std::cerr<<"\n";
+}
 
+void ChessGame::debugPrintMove(ChessMove m){
+    std::cerr<<m.getPiece()->getType();
+    std::cerr<<m.getStart();
+    std::cerr<<"-";
+    std::cerr<<m.getEnd();
+    if(m.isCapture()){
+        std::cerr<<" x:";
+        std::cerr<<m.getTaken()->getType()<<m.getTaken()->getPosition();
+    }
+    std::cerr<<"\n";
 }
 
 void ChessGame::draw(sf::RenderTarget& target, sf::RenderStates states) const{
@@ -159,21 +184,19 @@ void ChessGame::draw(sf::RenderTarget& target, sf::RenderStates states) const{
     }
 }
 
-bool ChessGame::isLegalMove(Move m){
+bool ChessGame::isLegalMove(ChessMove m){
     for (auto const& i : legalMoves) {
-        if(i.end==m.end&&i.start==m.start){
+        if(i.getEnd()==m.getEnd()&&i.getStart()==m.getStart()){
             return true;
         }
     }
     return false;
 }
 
-Piece * ChessGame::isMoveTakingPiece(Move m){
+Piece * ChessGame::isMoveTakingPiece(ChessMove m){
     for (auto const& i : legalMoves) {
-        std::cerr<<"isMoveTakingPiece"<<i.takes<<"\n";
-        if(i.end==m.end&&i.start==m.start&&i.piece==m.piece){
-            
-            return i.takes;
+        if(i.getEnd()==m.getEnd()&&i.getStart()==m.getStart()&&i.getPiece()==m.getPiece()){
+            return i.getTaken();
         }
     }
     return NULL;
@@ -191,15 +214,12 @@ void ChessGame::legalSlidingMoves(Piece &p){
             if(obstacle!=NULL && obstacle->getPlayer()==p.getPlayer()){
                 break;
             }
-            Move m;
-            m.start=start;
-            m.end=target;
-            m.piece=&p;
-            m.takes=NULL;
+            ChessMove m;
+            m.setStart(start);
+            m.setEnd(target);
+            m.setPiece(&p);
             if(obstacle!=NULL && obstacle->getPlayer()!=p.getPlayer()){
-                m.takes=obstacle;
-                legalMoves.push_front(m);
-                break;
+                m.setTaken(obstacle);
             }
             legalMoves.push_front(m);
         }
@@ -231,25 +251,24 @@ void ChessGame::legalKnightMoves(Piece &p){
         if(obstacle!=NULL && obstacle->getPlayer()==p.getPlayer()){
             continue;
         }
-        Move m;
-        m.start=start;
-        m.end=target;
-        m.piece=&p;
-        m.takes=NULL;
+        ChessMove m;
+        m.setStart(start);
+        m.setEnd(target);
+        m.setPiece(&p);
         if(obstacle!=NULL && obstacle->getPlayer()!=p.getPlayer()){
-            m.takes=obstacle;
+            m.setTaken(obstacle);
         }
         legalMoves.push_front(m);
     }
 }
-bool ChessGame::isLegalCastle(Move m){
+bool ChessGame::isLegalCastle(ChessMove m){
     int rookPos;
     int rookTarget;
     int kingTarget;
     int travelSquare=0;
     //kingside castle
-    if(m.piece->getPlayer()){
-        switch(m.end){
+    if(m.getPiece()->getPlayer()){
+        switch(m.getEnd()){
             case 58://white queenside
                 rookTarget=59;
                 kingTarget=58;
@@ -265,22 +284,11 @@ bool ChessGame::isLegalCastle(Move m){
         }
     }
     else{
-        switch(m.end){
+        switch(m.getEnd()){
             case 2://black queenside
                 rookTarget=3;
                 kingTarget=2;
-                travelSquare=1;    for(int i=0; i<16; i++){
-        for (int j = 0; j < 16; j++){
-            if(whitePieces[i].getPosition()==blackPieces[j].getPosition()){
-                if(playerTurn){
-                    blackPieces[j].setPosition(-1);
-                }
-                else{
-                    whitePieces[j].setPosition(-1);
-                }
-            }
-        }
-    }
+                travelSquare=1;
                 break;
             case 6://black kingside
                 rookPos=7;
@@ -292,7 +300,7 @@ bool ChessGame::isLegalCastle(Move m){
     }
     if(travelSquare==0) return false; //not valid
     Piece * rook=pieceOnSquare(rookPos);
-    if(rook==NULL||rook->hasMovedBefore()||m.piece->hasMovedBefore()) return false;
+    if(rook==NULL||rook->hasMovedBefore()||m.getPiece()->hasMovedBefore()) return false;
 
     if(pieceOnSquare(rookTarget)!=NULL||pieceOnSquare(kingTarget)!=NULL||pieceOnSquare(travelSquare)!=NULL) return false;
     return true;
@@ -301,9 +309,9 @@ bool ChessGame::isLegalCastle(Move m){
 void ChessGame::legalKingMoves(Piece &p){
     //rey
     int start=p.getPosition();
-    Move m;
-    m.start=start;
-    m.piece=&p;
+    ChessMove m;
+    m.setStart(start);
+    m.setPiece(&p);
     for(int dirIndex=0; dirIndex<8; dirIndex++){
         if(numSquaresToEdge[start][dirIndex]<1){
             continue;
@@ -316,32 +324,28 @@ void ChessGame::legalKingMoves(Piece &p){
         if(obstacle!=NULL && obstacle->getPlayer()==p.getPlayer()){
             continue;
         }
-        m.end=target;
-        m.takes=NULL;
+        m.setEnd(target);
         if(obstacle!=NULL && obstacle->getPlayer()!=p.getPlayer()){
-            m.takes=obstacle;
-            legalMoves.push_front(m);
-            continue;
+            m.setTaken(obstacle);
         }
         legalMoves.push_front(m);
     }
     for(int i=0; i<4; i++){//castle
-        m.end=castleMoves[i];
+        m.setEnd(castleMoves[i]);
         if(isLegalCastle(m)){
-            std::cerr<<"hey?";
             legalMoves.push_front(m);
         }
     }
 }
 
 void ChessGame::legalPawnTakes(Piece &p, int dirIndex){
-    Move m;
-    m.start=p.getPosition();
-    m.piece=&p;
+    ChessMove m;
+    m.setStart(p.getPosition());
+    m.setPiece(&p);
     
     int moveOffset=directionOffsets[dirIndex];
     int passantOffset=moveOffset+8;
-    m.end=m.start+moveOffset;
+    
 
     if(p.getPlayer()&&moveOffset>0){//if white and wants to take backwards
         return;
@@ -349,22 +353,24 @@ void ChessGame::legalPawnTakes(Piece &p, int dirIndex){
     if(!p.getPlayer()&&moveOffset<0){//if black and wants to take backwards
         return;
     }
-    if(numSquaresToEdge[m.start][dirIndex]<1){//if too close to the edge
+    if(numSquaresToEdge[m.getStart()][dirIndex]<1){//if too close to the edge
         return;
     }
 
-    Piece * dangerPiece=pieceOnSquare(m.end);
-    m.takes=dangerPiece;
+    m.setEnd(m.getStart()+moveOffset);
+
+    Piece * dangerPiece=pieceOnSquare(m.getEnd());
+    m.setTaken(dangerPiece);
     //normal take
     if(dangerPiece!=NULL&&dangerPiece->getPlayer()!=p.getPlayer()){
         legalMoves.push_front(m);
     }
     //en passant
-    dangerPiece=pieceOnSquare(m.start+passantOffset);
-    m.takes=dangerPiece;
+    dangerPiece=pieceOnSquare(m.getStart()+passantOffset);
+    m.setTaken(dangerPiece);
     if(dangerPiece!=NULL&&dangerPiece->getPlayer()!=p.getPlayer()){
-        if(dangerPiece->getType()=='P'&&playedMoves.front().piece==dangerPiece){
-            if(std::abs(playedMoves.back().start-playedMoves.back().end)==16){
+        if(dangerPiece->getType()=='P'&&playedMoves.front().getPiece()==dangerPiece){
+            if(std::abs(playedMoves.back().getStart()-playedMoves.back().getEnd())==16){
                 legalMoves.push_front(m);
             }
         }
@@ -373,22 +379,21 @@ void ChessGame::legalPawnTakes(Piece &p, int dirIndex){
 
 void ChessGame::legalPawnMoves(Piece &p){
     //pawn
-    Move m;
-    m.start=p.getPosition();
-    m.piece=&p;
-    m.takes=NULL;
+    ChessMove m;
+    m.setStart(p.getPosition());
+    m.setPiece(&p);
     int moveOffset;
     //Move 1 square: if not blocked by any piece.
     moveOffset=8;
     if(p.getPlayer())moveOffset=-moveOffset;//if white move backwards
-    m.end=m.start+moveOffset;
-    Piece * pieceInFront=pieceOnSquare(m.end);
+    m.setEnd(m.getStart()+moveOffset);
+    Piece * pieceInFront=pieceOnSquare(m.getEnd());
     if(pieceInFront==NULL){
         legalMoves.push_front(m);
     }
     //Move 2 squares: if not blocked and in second rank
-    m.end=m.end+moveOffset;
-    if(pieceInFront==NULL&&pieceOnSquare(m.end)==NULL){
+    m.setEnd(m.getEnd()+moveOffset);
+    if(pieceInFront==NULL&&pieceOnSquare(m.getEnd())==NULL){
         if(p.getPlayer()&&p.getPosition()>=48&&p.getPosition()<=55){
             legalMoves.push_front(m);
         }
@@ -404,6 +409,7 @@ void ChessGame::legalPawnMoves(Piece &p){
 }
 
 void ChessGame::calculatelegalMovesPiece(Piece &p){
+    
     if(p.getPosition()==-1){
         return;
     }
@@ -419,14 +425,18 @@ void ChessGame::calculatelegalMovesPiece(Piece &p){
     if (p.getType()=='P'){
         legalPawnMoves(p);
     }
+    
 }
 
 void ChessGame::recalculateLegalMoves(){
-    //TODO: position -1 is weird
+    
     legalMoves.clear();
+    
     for(int i=0; i<16; i++){
+        
         calculatelegalMovesPiece(whitePieces[i]);
         calculatelegalMovesPiece(blackPieces[i]);
+        
         /*
         if(playerTurn){
             calculatelegalMovesPiece(whitePieces[i]);
@@ -436,4 +446,6 @@ void ChessGame::recalculateLegalMoves(){
         }
         */
     }
+    
+    
 }

@@ -1,7 +1,7 @@
 CC = "g++"
 PROJECT = dchess
 
-SRC = src/main.cpp src/board.cpp src/pieceSprites.cpp src/piece.cpp src/fenParser.cpp src/chessGame.cpp
+SRC = src/main.cpp src/board.cpp src/pieceSprites.cpp src/piece.cpp src/fenParser.cpp src/chessGame.cpp src/chessMove.cpp
 
 LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 

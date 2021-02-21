@@ -1,5 +1,4 @@
 #include "fenParser.h"
-#include "stdio.h"
 
 bool isValidDigit(char c){
     if(c>='0'&&c<='8'){

@@ -6,8 +6,6 @@
 #define _PIECE_TEXTURES_H
 
 #include <SFML/Graphics.hpp>
-#include <string>
-#include <iostream>
 
 class PieceTextures{
 public:
